@@ -20,23 +20,46 @@
             <button class="tab" data-tab="friends">Friends</button>
             <button class="tab" data-tab="reminders">Check-ins</button>
             <button class="tab" data-tab="travel">Travel Plans</button>
+            <button class="tab" data-tab="empire">🏰 Empire</button>
         </nav>
 
         <main>
             <div id="map-view" class="tab-content active">
                 <div id="map" style="height: 500px;"></div>
                 <div class="map-legend">
-                    <div class="legend-item">
-                        <span class="marker-icon recent"></span>
-                        <span>Recent contact (&lt;30 days)</span>
+                    <div class="legend-section">
+                        <h4>Friends</h4>
+                        <div class="legend-item">
+                            <span class="marker-icon recent"></span>
+                            <span>Recent contact (&lt;30 days)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="marker-icon overdue"></span>
+                            <span>Overdue contact (&gt;90 days)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="marker-icon accommodation"></span>
+                            <span>Can stay with</span>
+                        </div>
                     </div>
-                    <div class="legend-item">
-                        <span class="marker-icon overdue"></span>
-                        <span>Overdue contact (&gt;90 days)</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="marker-icon accommodation"></span>
-                        <span>Can stay with</span>
+                    <div class="legend-section">
+                        <h4>Empire Properties</h4>
+                        <div class="legend-item">
+                            <span class="property-marker-icon" style="background: #8b4513;">💭</span>
+                            <span>Dream locations</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="property-marker-icon" style="background: #3B82F6;">🔍</span>
+                            <span>Researching</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="property-marker-icon" style="background: #F59E0B;">🎯</span>
+                            <span>Target properties</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="property-marker-icon" style="background: #10B981;">🏰</span>
+                            <span>Owned empire</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -118,6 +141,114 @@
                                 <div class="stat-label">Need Check-in</div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="empire-view" class="tab-content">
+                <div class="empire-section">
+                    <h2>Global Property Empire</h2>
+                    
+                    <div class="add-property-form">
+                        <h3>Add Property Location</h3>
+                        <form id="property-form">
+                            <input type="text" id="property-name" placeholder="Property name/identifier" required>
+                            <input type="text" id="property-location" placeholder="City, Country" required>
+                            <select id="property-status" required>
+                                <option value="">Select status...</option>
+                                <option value="dream">💭 Dream Location</option>
+                                <option value="research">🔍 Researching</option>
+                                <option value="target">🎯 Actively Targeting</option>
+                                <option value="negotiating">💬 Negotiating</option>
+                                <option value="owned">🏠 Owned</option>
+                            </select>
+                            <div class="property-details">
+                                <input type="number" id="property-cost" placeholder="Estimated cost (€)" min="0">
+                                <select id="property-type">
+                                    <option value="">Property type...</option>
+                                    <option value="apartment">🏢 Apartment</option>
+                                    <option value="house">🏠 House</option>
+                                    <option value="villa">🏖️ Villa</option>
+                                    <option value="land">🌾 Land</option>
+                                    <option value="island">🏝️ Private Island</option>
+                                    <option value="commercial">🏪 Commercial</option>
+                                </select>
+                                <select id="climate-score">
+                                    <option value="">Climate preference...</option>
+                                    <option value="5">☀️ Perfect Year-Round</option>
+                                    <option value="4">🌤️ Great Most Seasons</option>
+                                    <option value="3">⛅ Good Overall</option>
+                                    <option value="2">🌧️ Seasonal Challenges</option>
+                                    <option value="1">❄️ Challenging Climate</option>
+                                </select>
+                                <select id="strategic-value">
+                                    <option value="">Strategic value...</option>
+                                    <option value="5">🎯 Critical Hub Location</option>
+                                    <option value="4">📍 High Strategic Value</option>
+                                    <option value="3">🗺️ Good Regional Access</option>
+                                    <option value="2">✈️ Decent Connections</option>
+                                    <option value="1">🚁 Remote/Exclusive</option>
+                                </select>
+                            </div>
+                            <textarea id="property-notes" placeholder="Notes: investment potential, visa requirements, local connections, lifestyle factors..."></textarea>
+                            <button type="submit">Add to Empire</button>
+                        </form>
+                    </div>
+
+                    <div class="empire-analytics">
+                        <h3>Empire Overview</h3>
+                        <div class="empire-stats">
+                            <div class="stat-card empire-stat">
+                                <div class="stat-number" id="total-properties">0</div>
+                                <div class="stat-label">Properties Tracked</div>
+                            </div>
+                            <div class="stat-card empire-stat">
+                                <div class="stat-number" id="owned-properties">0</div>
+                                <div class="stat-label">Owned</div>
+                            </div>
+                            <div class="stat-card empire-stat">
+                                <div class="stat-number" id="total-investment">€0</div>
+                                <div class="stat-label">Total Investment</div>
+                            </div>
+                            <div class="stat-card empire-stat">
+                                <div class="stat-number" id="continents-covered">0</div>
+                                <div class="stat-label">Continents</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="strategic-analysis">
+                        <h3>Strategic Analysis</h3>
+                        <div class="analysis-tools">
+                            <button id="analyze-gaps" class="analysis-btn">🔍 Find Coverage Gaps</button>
+                            <button id="friend-property-connections" class="analysis-btn">👥 Friend-Property Connections</button>
+                            <button id="investment-priority" class="analysis-btn">💰 Investment Priority</button>
+                        </div>
+                        <div id="analysis-results"></div>
+                    </div>
+
+                    <div class="properties-list">
+                        <h3>Your Empire</h3>
+                        <div class="property-filters">
+                            <select id="status-filter">
+                                <option value="">All statuses</option>
+                                <option value="dream">Dreams</option>
+                                <option value="research">Research</option>
+                                <option value="target">Targets</option>
+                                <option value="negotiating">Negotiating</option>
+                                <option value="owned">Owned</option>
+                            </select>
+                            <select id="type-filter">
+                                <option value="">All types</option>
+                                <option value="apartment">Apartments</option>
+                                <option value="house">Houses</option>
+                                <option value="villa">Villas</option>
+                                <option value="land">Land</option>
+                                <option value="island">Islands</option>
+                                <option value="commercial">Commercial</option>
+                            </select>
+                        </div>
+                        <div id="properties-container"></div>
                     </div>
                 </div>
             </div>

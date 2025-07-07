@@ -1,10 +1,12 @@
 class FriendMap {
     constructor() {
         this.friends = JSON.parse(localStorage.getItem('friends') || '[]');
+        this.properties = JSON.parse(localStorage.getItem('properties') || '[]');
         this.map = null;
         this.markers = [];
         this.init();
         this.loadDemoData();
+        this.loadDemoProperties();
     }
 
     init() {
@@ -15,6 +17,8 @@ class FriendMap {
         this.updateReminders();
         this.updateTravelSuggestions();
         this.updateAnalytics();
+        this.loadProperties();
+        this.updateEmpireAnalytics();
     }
 
     initMap() {
@@ -76,6 +80,34 @@ class FriendMap {
         // Route planning
         document.getElementById('suggest-route').addEventListener('click', () => {
             this.suggestRoute();
+        });
+
+        // Empire property management
+        document.getElementById('property-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addProperty();
+        });
+
+        // Analysis tools
+        document.getElementById('analyze-gaps').addEventListener('click', () => {
+            this.analyzeGaps();
+        });
+
+        document.getElementById('friend-property-connections').addEventListener('click', () => {
+            this.analyzeFriendPropertyConnections();
+        });
+
+        document.getElementById('investment-priority').addEventListener('click', () => {
+            this.analyzeInvestmentPriority();
+        });
+
+        // Property filters
+        document.getElementById('status-filter').addEventListener('change', () => {
+            this.filterProperties();
+        });
+
+        document.getElementById('type-filter').addEventListener('change', () => {
+            this.filterProperties();
         });
     }
 
@@ -593,6 +625,429 @@ class FriendMap {
         document.getElementById('countries-count').textContent = countries;
         document.getElementById('accommodation-count').textContent = accommodationCount;
         document.getElementById('overdue-count').textContent = overdueFriends;
+    }
+
+    // Empire Property Management Methods
+
+    async addProperty() {
+        const name = document.getElementById('property-name').value;
+        const location = document.getElementById('property-location').value;
+        const status = document.getElementById('property-status').value;
+        const cost = parseFloat(document.getElementById('property-cost').value) || 0;
+        const type = document.getElementById('property-type').value;
+        const climate = parseInt(document.getElementById('climate-score').value) || 0;
+        const strategic = parseInt(document.getElementById('strategic-value').value) || 0;
+        const notes = document.getElementById('property-notes').value;
+
+        const coords = await this.geocodeLocation(location);
+        
+        const property = {
+            id: Date.now(),
+            name,
+            location,
+            coordinates: coords,
+            status,
+            cost,
+            type,
+            climate,
+            strategic,
+            notes,
+            dateAdded: new Date().toISOString()
+        };
+
+        this.properties.push(property);
+        this.saveProperties();
+        this.loadProperties();
+        this.updateEmpireAnalytics();
+        
+        document.getElementById('property-form').reset();
+    }
+
+    loadProperties() {
+        this.renderPropertiesList();
+        this.addPropertiesToMap();
+    }
+
+    addPropertiesToMap() {
+        // Remove existing property markers
+        this.markers.forEach(marker => {
+            if (marker.propertyMarker) {
+                this.map.removeLayer(marker);
+            }
+        });
+
+        // Add property markers
+        this.properties.forEach(property => {
+            if (property.coordinates && property.coordinates.lat !== 0) {
+                let iconColor = 'purple';
+                let iconSymbol = '🏠';
+                
+                // Color coding based on status
+                switch(property.status) {
+                    case 'dream': iconColor = '#8b4513'; iconSymbol = '💭'; break;
+                    case 'research': iconColor = '#3B82F6'; iconSymbol = '🔍'; break;
+                    case 'target': iconColor = '#F59E0B'; iconSymbol = '🎯'; break;
+                    case 'negotiating': iconColor = '#F97316'; iconSymbol = '💬'; break;
+                    case 'owned': iconColor = '#10B981'; iconSymbol = '🏰'; break;
+                }
+
+                const icon = L.divIcon({
+                    className: 'property-marker',
+                    html: `<div class="property-marker-content" style="background: ${iconColor}; color: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">${iconSymbol}</div>`,
+                    iconSize: [35, 35],
+                    iconAnchor: [17, 17]
+                });
+
+                const marker = L.marker([property.coordinates.lat, property.coordinates.lng], { icon })
+                    .addTo(this.map)
+                    .bindPopup(`
+                        <strong>${property.name}</strong><br>
+                        ${property.location}<br>
+                        Status: ${property.status}<br>
+                        ${property.cost ? `Cost: €${property.cost.toLocaleString()}` : ''}<br>
+                        ${property.type ? `Type: ${property.type}` : ''}<br>
+                        ${property.notes ? `<em>${property.notes}</em>` : ''}
+                    `);
+
+                marker.propertyMarker = true;
+                this.markers.push(marker);
+            }
+        });
+    }
+
+    renderPropertiesList() {
+        const container = document.getElementById('properties-container');
+        container.innerHTML = '';
+
+        const statusFilter = document.getElementById('status-filter').value;
+        const typeFilter = document.getElementById('type-filter').value;
+
+        const filteredProperties = this.properties.filter(property => {
+            const statusMatch = !statusFilter || property.status === statusFilter;
+            const typeMatch = !typeFilter || property.type === typeFilter;
+            return statusMatch && typeMatch;
+        });
+
+        if (filteredProperties.length === 0) {
+            container.innerHTML = '<p>No properties match the selected filters.</p>';
+            return;
+        }
+
+        filteredProperties.forEach(property => {
+            const propertyElement = document.createElement('div');
+            propertyElement.className = 'property-card';
+            
+            const statusIcons = {
+                'dream': '💭', 'research': '🔍', 'target': '🎯', 
+                'negotiating': '💬', 'owned': '🏰'
+            };
+
+            const typeIcons = {
+                'apartment': '🏢', 'house': '🏠', 'villa': '🏖️',
+                'land': '🌾', 'island': '🏝️', 'commercial': '🏪'
+            };
+
+            const climateStars = '☀️'.repeat(property.climate || 0);
+            const strategicStars = '⭐'.repeat(property.strategic || 0);
+            
+            propertyElement.innerHTML = `
+                <div class="property-header">
+                    <h4 class="property-title">${property.name}</h4>
+                    <span class="property-status ${property.status}">${statusIcons[property.status] || ''} ${property.status}</span>
+                </div>
+                <p>📍 ${property.location}</p>
+                <div class="property-details-display">
+                    ${property.cost ? `<div class="property-detail">💰 €${property.cost.toLocaleString()}</div>` : ''}
+                    ${property.type ? `<div class="property-detail">${typeIcons[property.type] || ''} ${property.type}</div>` : ''}
+                    ${property.climate ? `<div class="property-detail">🌤️ ${climateStars}</div>` : ''}
+                    ${property.strategic ? `<div class="property-detail">🎯 ${strategicStars}</div>` : ''}
+                </div>
+                ${property.notes ? `<p><em>${property.notes}</em></p>` : ''}
+                <button onclick="friendMap.removeProperty(${property.id})" style="background: var(--error-color); color: white; border: none; padding: 8px 16px; border-radius: var(--border-radius-sm); cursor: pointer; margin-top: 12px;">Remove</button>
+            `;
+            
+            container.appendChild(propertyElement);
+        });
+    }
+
+    filterProperties() {
+        this.renderPropertiesList();
+    }
+
+    removeProperty(propertyId) {
+        if (confirm('Are you sure you want to remove this property?')) {
+            this.properties = this.properties.filter(p => p.id !== propertyId);
+            this.saveProperties();
+            this.loadProperties();
+            this.updateEmpireAnalytics();
+            this.addPropertiesToMap();
+        }
+    }
+
+    updateEmpireAnalytics() {
+        const totalProperties = this.properties.length;
+        const ownedProperties = this.properties.filter(p => p.status === 'owned').length;
+        const totalInvestment = this.properties
+            .filter(p => p.status === 'owned')
+            .reduce((sum, p) => sum + (p.cost || 0), 0);
+        
+        const continents = [...new Set(this.properties.map(p => this.getContinent(p.location)))].length;
+
+        document.getElementById('total-properties').textContent = totalProperties;
+        document.getElementById('owned-properties').textContent = ownedProperties;
+        document.getElementById('total-investment').textContent = `€${totalInvestment.toLocaleString()}`;
+        document.getElementById('continents-covered').textContent = continents;
+    }
+
+    getContinent(location) {
+        // Simple continent mapping - could be more sophisticated
+        const country = location.split(',').pop().trim().toLowerCase();
+        
+        if (['germany', 'france', 'spain', 'italy', 'uk', 'sweden', 'portugal', 'belgium', 'cyprus'].includes(country)) return 'Europe';
+        if (['japan', 'china', 'india', 'thailand', 'singapore'].includes(country)) return 'Asia';
+        if (['australia', 'new zealand'].includes(country)) return 'Oceania';
+        if (['usa', 'canada', 'mexico'].includes(country)) return 'North America';
+        if (['brazil', 'argentina', 'chile'].includes(country)) return 'South America';
+        if (['egypt', 'south africa', 'morocco'].includes(country)) return 'Africa';
+        
+        return 'Other';
+    }
+
+    analyzeGaps() {
+        const results = document.getElementById('analysis-results');
+        results.innerHTML = '';
+
+        // Analyze geographic coverage gaps
+        const continents = {
+            'Europe': 0, 'Asia': 0, 'North America': 0, 
+            'South America': 0, 'Africa': 0, 'Oceania': 0
+        };
+
+        this.properties.forEach(property => {
+            const continent = this.getContinent(property.location);
+            continents[continent] = (continents[continent] || 0) + 1;
+        });
+
+        const gaps = Object.entries(continents)
+            .filter(([continent, count]) => count === 0)
+            .map(([continent]) => continent);
+
+        const resultElement = document.createElement('div');
+        resultElement.className = 'analysis-result';
+        
+        resultElement.innerHTML = `
+            <h4>🔍 Geographic Coverage Analysis</h4>
+            <p><strong>Coverage by Continent:</strong></p>
+            <ul>
+                ${Object.entries(continents).map(([continent, count]) => 
+                    `<li>${continent}: ${count} properties ${count === 0 ? '❌ Gap identified' : '✅'}</li>`
+                ).join('')}
+            </ul>
+            ${gaps.length > 0 ? 
+                `<p><strong>Recommended focus areas:</strong> ${gaps.join(', ')}</p>` :
+                '<p>✅ Good global coverage across all continents!</p>'
+            }
+        `;
+
+        results.appendChild(resultElement);
+    }
+
+    analyzeFriendPropertyConnections() {
+        const results = document.getElementById('analysis-results');
+        results.innerHTML = '';
+
+        const connections = [];
+        
+        this.properties.forEach(property => {
+            const nearbyFriends = this.friends.filter(friend => {
+                // Simple proximity check - same country
+                const friendCountry = friend.location.split(',').pop().trim().toLowerCase();
+                const propertyCountry = property.location.split(',').pop().trim().toLowerCase();
+                return friendCountry === propertyCountry;
+            });
+
+            if (nearbyFriends.length > 0) {
+                connections.push({
+                    property: property.name,
+                    location: property.location,
+                    friends: nearbyFriends.map(f => f.name),
+                    accommodationFriends: nearbyFriends.filter(f => f.canStay).map(f => f.name)
+                });
+            }
+        });
+
+        const resultElement = document.createElement('div');
+        resultElement.className = 'analysis-result';
+        
+        if (connections.length === 0) {
+            resultElement.innerHTML = `
+                <h4>👥 Friend-Property Connections</h4>
+                <p>No properties in the same countries as your friends. Consider properties where you have social connections!</p>
+            `;
+        } else {
+            resultElement.innerHTML = `
+                <h4>👥 Friend-Property Connections</h4>
+                <p><strong>Properties with nearby friends:</strong></p>
+                <ul>
+                    ${connections.map(conn => `
+                        <li><strong>${conn.property}</strong> (${conn.location}): 
+                            ${conn.friends.join(', ')}
+                            ${conn.accommodationFriends.length > 0 ? ` - Can stay with: ${conn.accommodationFriends.join(', ')}` : ''}
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+        }
+
+        results.appendChild(resultElement);
+    }
+
+    analyzeInvestmentPriority() {
+        const results = document.getElementById('analysis-results');
+        results.innerHTML = '';
+
+        // Score properties based on multiple factors
+        const scoredProperties = this.properties
+            .filter(p => p.status !== 'owned')
+            .map(property => {
+                let score = 0;
+                let factors = [];
+
+                // Climate score (higher is better)
+                score += (property.climate || 0) * 2;
+                if (property.climate >= 4) factors.push('☀️ Excellent climate');
+
+                // Strategic value
+                score += (property.strategic || 0) * 2;
+                if (property.strategic >= 4) factors.push('🎯 High strategic value');
+
+                // Cost factor (lower cost = higher score, relative to budget)
+                if (property.cost) {
+                    if (property.cost < 100000) {
+                        score += 3;
+                        factors.push('💰 Affordable price');
+                    } else if (property.cost < 250000) {
+                        score += 2;
+                    } else {
+                        score += 1;
+                    }
+                }
+
+                // Friend proximity bonus
+                const nearbyFriends = this.friends.filter(friend => {
+                    const friendCountry = friend.location.split(',').pop().trim().toLowerCase();
+                    const propertyCountry = property.location.split(',').pop().trim().toLowerCase();
+                    return friendCountry === propertyCountry;
+                });
+                
+                if (nearbyFriends.length > 0) {
+                    score += nearbyFriends.length;
+                    factors.push(`👥 ${nearbyFriends.length} friends nearby`);
+                }
+
+                return { ...property, score, factors };
+            })
+            .sort((a, b) => b.score - a.score);
+
+        const resultElement = document.createElement('div');
+        resultElement.className = 'analysis-result';
+        
+        if (scoredProperties.length === 0) {
+            resultElement.innerHTML = `
+                <h4>💰 Investment Priority Analysis</h4>
+                <p>All properties are owned! Time to add more targets to your empire.</p>
+            `;
+        } else {
+            resultElement.innerHTML = `
+                <h4>💰 Investment Priority Ranking</h4>
+                <p><strong>Top opportunities (based on climate, strategy, cost, friends):</strong></p>
+                <ol>
+                    ${scoredProperties.slice(0, 5).map(property => `
+                        <li><strong>${property.name}</strong> (Score: ${property.score})
+                            <br>📍 ${property.location}
+                            ${property.cost ? `<br>💰 €${property.cost.toLocaleString()}` : ''}
+                            <br>Factors: ${property.factors.join(', ') || 'Basic scoring'}
+                        </li>
+                    `).join('')}
+                </ol>
+            `;
+        }
+
+        results.appendChild(resultElement);
+    }
+
+    saveProperties() {
+        localStorage.setItem('properties', JSON.stringify(this.properties));
+    }
+
+    loadDemoProperties() {
+        if (this.properties.length === 0) {
+            const demoProperties = [
+                {
+                    id: 1001,
+                    name: "Sicily Beach Villa",
+                    location: "Taormina, Sicily, Italy",
+                    coordinates: { lat: 37.8536, lng: 15.2869 },
+                    status: "target",
+                    cost: 180000,
+                    type: "villa",
+                    climate: 5,
+                    strategic: 4,
+                    notes: "Perfect Mediterranean climate, cheap property prices, EU base for southern Europe"
+                },
+                {
+                    id: 1002,
+                    name: "Northern Cyprus Apartment",
+                    location: "Kyrenia, Northern Cyprus",
+                    coordinates: { lat: 35.3426, lng: 33.3207 },
+                    status: "research",
+                    cost: 75000,
+                    type: "apartment",
+                    climate: 4,
+                    strategic: 3,
+                    notes: "Very affordable, year-round sunshine, gateway to Middle East and Europe"
+                },
+                {
+                    id: 1003,
+                    name: "Dream Island",
+                    location: "Maldives",
+                    coordinates: { lat: 3.2028, lng: 73.2207 },
+                    status: "dream",
+                    cost: 2500000,
+                    type: "island",
+                    climate: 5,
+                    strategic: 1,
+                    notes: "Ultimate goal: private island paradise, complete privacy and luxury"
+                },
+                {
+                    id: 1004,
+                    name: "Berlin Creative Hub",
+                    location: "Berlin, Germany",
+                    coordinates: { lat: 52.5200, lng: 13.4050 },
+                    status: "negotiating",
+                    cost: 320000,
+                    type: "apartment",
+                    climate: 2,
+                    strategic: 5,
+                    notes: "Creative city, excellent transport links, Alex lives here! Central Europe base"
+                },
+                {
+                    id: 1005,
+                    name: "Lisbon Viewpoint House",
+                    location: "Lisbon, Portugal",
+                    coordinates: { lat: 38.7223, lng: -9.1393 },
+                    status: "owned",
+                    cost: 250000,
+                    type: "house",
+                    climate: 4,
+                    strategic: 4,
+                    notes: "Riley's neighborhood! Great for exploring Portugal/Spain, affordable EU base"
+                }
+            ];
+
+            this.properties = demoProperties;
+            this.saveProperties();
+        }
     }
 }
 
