@@ -14,6 +14,7 @@ class FriendMap {
         this.loadFriends();
         this.updateReminders();
         this.updateTravelSuggestions();
+        this.updateAnalytics();
     }
 
     initMap() {
@@ -49,6 +50,33 @@ class FriendMap {
             e.preventDefault();
             this.addFriend();
         });
+
+        // Bulk actions
+        document.getElementById('mark-all-contacted').addEventListener('click', () => {
+            this.markAllContacted();
+        });
+
+        document.getElementById('export-data').addEventListener('click', () => {
+            this.exportData();
+        });
+
+        document.getElementById('import-btn').addEventListener('click', () => {
+            document.getElementById('import-data').click();
+        });
+
+        document.getElementById('import-data').addEventListener('change', (e) => {
+            this.importData(e);
+        });
+
+        // Voice input (using Web Speech API if available)
+        document.getElementById('voice-input-btn').addEventListener('click', () => {
+            this.startVoiceInput();
+        });
+
+        // Route planning
+        document.getElementById('suggest-route').addEventListener('click', () => {
+            this.suggestRoute();
+        });
     }
 
     async addFriend() {
@@ -75,6 +103,7 @@ class FriendMap {
         this.loadFriends();
         this.updateReminders();
         this.updateTravelSuggestions();
+        this.updateAnalytics();
         
         document.getElementById('friend-form').reset();
     }
@@ -249,6 +278,7 @@ class FriendMap {
         this.loadFriends();
         this.updateReminders();
         this.updateTravelSuggestions();
+        this.updateAnalytics();
     }
 
     saveFriends() {
@@ -353,6 +383,216 @@ class FriendMap {
             this.friends = demoFriends;
             this.saveFriends();
         }
+    }
+
+    markAllContacted() {
+        const overdueFriends = this.friends.filter(friend => {
+            const daysSinceContact = Math.floor((new Date() - new Date(friend.lastContact)) / (1000 * 60 * 60 * 24));
+            return daysSinceContact > 30;
+        });
+
+        if (overdueFriends.length === 0) {
+            alert('No overdue friends to update!');
+            return;
+        }
+
+        if (confirm(`Mark ${overdueFriends.length} friends as contacted today?`)) {
+            overdueFriends.forEach(friend => {
+                friend.lastContact = new Date();
+            });
+            this.saveFriends();
+            this.loadFriends();
+            this.updateReminders();
+            this.updateAnalytics();
+        }
+    }
+
+    exportData() {
+        const data = {
+            friends: this.friends,
+            exportDate: new Date().toISOString(),
+            version: '1.0'
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `friendmap-export-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                
+                if (data.friends && Array.isArray(data.friends)) {
+                    if (confirm(`Import ${data.friends.length} friends? This will merge with your existing data.`)) {
+                        // Merge imported friends with existing ones, avoiding duplicates
+                        data.friends.forEach(importedFriend => {
+                            const exists = this.friends.some(existing => 
+                                existing.name.toLowerCase() === importedFriend.name.toLowerCase() &&
+                                existing.location.toLowerCase() === importedFriend.location.toLowerCase()
+                            );
+                            
+                            if (!exists) {
+                                importedFriend.id = Date.now() + Math.random();
+                                this.friends.push(importedFriend);
+                            }
+                        });
+                        
+                        this.saveFriends();
+                        this.loadFriends();
+                        this.updateReminders();
+                        this.updateTravelSuggestions();
+                        this.updateAnalytics();
+                        alert('Data imported successfully!');
+                    }
+                } else {
+                    alert('Invalid file format. Please export your data first to see the expected format.');
+                }
+            } catch (error) {
+                alert('Error reading file. Please make sure it\'s a valid JSON file.');
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    startVoiceInput() {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert('Voice input not supported in this browser. Try Chrome or Edge.');
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        const button = document.getElementById('voice-input-btn');
+        button.textContent = '🔴 Listening...';
+        button.disabled = true;
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            this.parseVoiceInput(transcript);
+        };
+
+        recognition.onerror = (event) => {
+            alert('Voice recognition error: ' + event.error);
+        };
+
+        recognition.onend = () => {
+            button.textContent = '🎤 Voice Input';
+            button.disabled = false;
+        };
+
+        recognition.start();
+    }
+
+    parseVoiceInput(transcript) {
+        // Simple voice input parsing - could be much more sophisticated
+        alert(`Voice input received: "${transcript}"\n\nParsing voice input is a demo feature. Please fill the form manually.`);
+        
+        // Basic parsing example (you could expand this)
+        const words = transcript.toLowerCase().split(' ');
+        
+        // Look for patterns like "add [name] in [location]"
+        if (words.includes('add') && words.includes('in')) {
+            const addIndex = words.indexOf('add');
+            const inIndex = words.indexOf('in');
+            
+            if (addIndex < inIndex) {
+                const name = words.slice(addIndex + 1, inIndex).join(' ');
+                const location = words.slice(inIndex + 1).join(' ');
+                
+                if (name && location) {
+                    document.getElementById('friend-name').value = name.charAt(0).toUpperCase() + name.slice(1);
+                    document.getElementById('friend-location').value = location.charAt(0).toUpperCase() + location.slice(1);
+                    document.getElementById('last-contact').value = new Date().toISOString().split('T')[0];
+                }
+            }
+        }
+    }
+
+    suggestRoute() {
+        const input = document.getElementById('route-cities').value.trim();
+        if (!input) {
+            alert('Please enter some cities separated by commas');
+            return;
+        }
+
+        const cities = input.split(',').map(city => city.trim().toLowerCase());
+        const container = document.getElementById('route-suggestions');
+        container.innerHTML = '';
+
+        // Find friends in or near the specified cities
+        const routeFriends = [];
+        cities.forEach(city => {
+            const friendsInCity = this.friends.filter(friend => 
+                friend.location.toLowerCase().includes(city)
+            );
+            routeFriends.push(...friendsInCity.map(friend => ({ ...friend, searchCity: city })));
+        });
+
+        if (routeFriends.length === 0) {
+            container.innerHTML = '<p>No friends found in the specified cities. Try broader search terms.</p>';
+            return;
+        }
+
+        // Group by city and create suggestions
+        const cityGroups = {};
+        routeFriends.forEach(friend => {
+            const city = friend.searchCity;
+            if (!cityGroups[city]) cityGroups[city] = [];
+            cityGroups[city].push(friend);
+        });
+
+        Object.entries(cityGroups).forEach(([city, friends]) => {
+            const routeElement = document.createElement('div');
+            routeElement.className = 'route-result';
+            
+            const accommodationFriends = friends.filter(f => f.canStay);
+            const daysSinceContact = friends.map(f => Math.floor((new Date() - new Date(f.lastContact)) / (1000 * 60 * 60 * 24)));
+            const avgDays = Math.round(daysSinceContact.reduce((a, b) => a + b, 0) / daysSinceContact.length);
+            
+            routeElement.innerHTML = `
+                <h4>📍 ${city.charAt(0).toUpperCase() + city.slice(1)}</h4>
+                <p><strong>${friends.length} friend${friends.length > 1 ? 's' : ''}:</strong> ${friends.map(f => f.name).join(', ')}</p>
+                ${accommodationFriends.length > 0 ? 
+                    `<p>🏠 <strong>Can stay with:</strong> ${accommodationFriends.map(f => f.name).join(', ')}</p>` : 
+                    '<p>🏨 No accommodation available - book hotel</p>'
+                }
+                <p>💬 <strong>Average last contact:</strong> ${avgDays} days ago</p>
+            `;
+            
+            container.appendChild(routeElement);
+        });
+    }
+
+    updateAnalytics() {
+        const totalFriends = this.friends.length;
+        const countries = [...new Set(this.friends.map(f => f.location.split(',').pop().trim()))].length;
+        const accommodationCount = this.friends.filter(f => f.canStay).length;
+        const overdueFriends = this.friends.filter(friend => {
+            const daysSinceContact = Math.floor((new Date() - new Date(friend.lastContact)) / (1000 * 60 * 60 * 24));
+            return daysSinceContact > 30;
+        }).length;
+
+        document.getElementById('total-friends').textContent = totalFriends;
+        document.getElementById('countries-count').textContent = countries;
+        document.getElementById('accommodation-count').textContent = accommodationCount;
+        document.getElementById('overdue-count').textContent = overdueFriends;
     }
 }
 

@@ -52,7 +52,12 @@
                             <input type="checkbox" id="can-stay"> Can stay with them
                         </label>
                         <textarea id="friend-notes" placeholder="Notes (e.g., cat sitting, spare room)"></textarea>
-                        <button type="submit">Add Friend</button>
+                        <div class="form-actions">
+                            <button type="submit">Add Friend</button>
+                            <button type="button" id="voice-input-btn">🎤 Voice Input</button>
+                            <input type="file" id="import-data" accept=".json" style="display: none;">
+                            <button type="button" id="import-btn">Import Data</button>
+                        </div>
                     </form>
                 </div>
 
@@ -65,6 +70,10 @@
             <div id="reminders-view" class="tab-content">
                 <div class="reminders-section">
                     <h2>Friends to Check In With</h2>
+                    <div class="bulk-actions">
+                        <button id="mark-all-contacted" class="bulk-action-btn">Mark All as Contacted Today</button>
+                        <button id="export-data" class="bulk-action-btn">Export Data</button>
+                    </div>
                     <div id="overdue-friends"></div>
                 </div>
             </div>
@@ -80,7 +89,36 @@
                             <input type="checkbox" id="show-clusters" checked> Show friend clusters
                         </label>
                     </div>
+                    <div class="route-planner">
+                        <h3>Plan Your Route</h3>
+                        <div class="route-input">
+                            <input type="text" id="route-cities" placeholder="Enter cities separated by commas (e.g., Berlin, Stockholm, London)">
+                            <button id="suggest-route">Suggest Route</button>
+                        </div>
+                        <div id="route-suggestions"></div>
+                    </div>
                     <div id="travel-suggestions"></div>
+                    <div id="analytics-dashboard">
+                        <h3>Friendship Analytics</h3>
+                        <div class="analytics-grid">
+                            <div class="stat-card">
+                                <div class="stat-number" id="total-friends">0</div>
+                                <div class="stat-label">Total Friends</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="countries-count">0</div>
+                                <div class="stat-label">Countries</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="accommodation-count">0</div>
+                                <div class="stat-label">Can Stay With</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="overdue-count">0</div>
+                                <div class="stat-label">Need Check-in</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
