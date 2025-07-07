@@ -1,0 +1,535 @@
+/* Modern, functional, and fun design system */
+:root {
+    --primary-color: #3B82F6;
+    --primary-light: #60A5FA;
+    --primary-dark: #2563EB;
+    --secondary-color: #F97316;
+    --secondary-light: #FB923C;
+    --success-color: #10B981;
+    --warning-color: #F59E0B;
+    --error-color: #EF4444;
+    --text-color: #1F2937;
+    --text-light: #6B7280;
+    --background-color: #F9FAFB;
+    --background-gradient: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+    --card-background: #FFFFFF;
+    --border-color: #E5E7EB;
+    --focus-color: #F59E0B;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+    --transition: all 0.3s ease;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+    background: var(--background-gradient);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 32px 0;
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+}
+
+header h1 {
+    color: var(--primary-color);
+    font-size: 2.75rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+}
+
+header p {
+    color: var(--text-light);
+    font-size: 1.125rem;
+    font-weight: 500;
+}
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding: 8px;
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.tab {
+    background: transparent;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition);
+    color: var(--text-light);
+    flex: 1;
+    text-align: center;
+}
+
+.tab:hover {
+    background: var(--background-color);
+    color: var(--text-color);
+    transform: translateY(-1px);
+}
+
+.tab.active {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.tab-content {
+    display: none;
+    background: var(--card-background);
+    padding: 32px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#map {
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.map-legend {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 20px;
+    background: var(--background-color);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.marker-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 2px solid white;
+}
+
+.marker-icon.recent {
+    background-color: var(--success-color);
+}
+
+.marker-icon.overdue {
+    background-color: var(--error-color);
+}
+
+.marker-icon.accommodation::after {
+    content: '🏠';
+    position: absolute;
+    font-size: 12px;
+    margin-left: -6px;
+    margin-top: -2px;
+}
+
+.add-friend-form {
+    background: var(--card-background);
+    padding: 28px;
+    border-radius: var(--border-radius);
+    margin-bottom: 32px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.add-friend-form h2 {
+    margin-bottom: 20px;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-friend-form h2::before {
+    content: '👋';
+    font-size: 1.25rem;
+}
+
+.add-friend-form form {
+    display: grid;
+    gap: 20px;
+}
+
+.add-friend-form input,
+.add-friend-form textarea {
+    padding: 16px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+    transition: var(--transition);
+    background: var(--background-color);
+}
+
+.add-friend-form input:focus,
+.add-friend-form textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background: var(--card-background);
+}
+
+.add-friend-form label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.add-friend-form button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.add-friend-form button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.add-friend-form button:active {
+    transform: translateY(0);
+}
+
+.friends-list h2 {
+    margin-bottom: 24px;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.friends-list h2::before {
+    content: '👥';
+    font-size: 1.25rem;
+}
+
+.friend-card {
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    position: relative;
+}
+
+.friend-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.friend-card h3 {
+    color: var(--text-color);
+    margin-bottom: 12px;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.friend-card p {
+    margin-bottom: 8px;
+    color: var(--text-light);
+    line-height: 1.5;
+}
+
+.friend-card .contact-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.friend-card .contact-status.recent {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.friend-card .contact-status.overdue {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+}
+
+.friend-card button {
+    background: var(--error-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    margin-top: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.friend-card button:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.reminders-section h2 {
+    margin-bottom: 24px;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reminders-section h2::before {
+    content: '⏰';
+    font-size: 1.25rem;
+}
+
+.reminder-card {
+    background: rgba(251, 146, 60, 0.05);
+    border: 1px solid rgba(251, 146, 60, 0.2);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: var(--transition);
+}
+
+.reminder-card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.reminder-card.urgent {
+    background: rgba(239, 68, 68, 0.05);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.reminder-card h3 {
+    color: var(--text-color);
+    margin-bottom: 12px;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.reminder-card p {
+    color: var(--text-light);
+    margin-bottom: 8px;
+}
+
+.reminder-card button {
+    background: var(--success-color);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    margin-top: 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.reminder-card button:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.travel-section h2 {
+    margin-bottom: 24px;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.travel-section h2::before {
+    content: '✈️';
+    font-size: 1.25rem;
+}
+
+.travel-filters {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.travel-filters label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-weight: 500;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+.travel-suggestion {
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: var(--transition);
+}
+
+.travel-suggestion:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.travel-suggestion h3 {
+    color: var(--text-color);
+    margin-bottom: 12px;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.travel-suggestion p {
+    color: var(--text-light);
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.custom-marker {
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    color: white;
+}
+
+.custom-marker.green {
+    background-color: var(--success-color);
+}
+
+.custom-marker.orange {
+    background-color: var(--warning-color);
+}
+
+.custom-marker.red {
+    background-color: var(--error-color);
+}
+
+.custom-marker.accommodation::after {
+    content: '🏠';
+    position: absolute;
+    font-size: 14px;
+    margin-left: 18px;
+    margin-top: -18px;
+}
+
+.marker-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .tabs {
+        flex-wrap: wrap;
+    }
+    
+    .tab {
+        flex: 1;
+        text-align: center;
+        min-width: 120px;
+    }
+    
+    .map-legend {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .add-friend-form {
+        padding: 15px;
+    }
+}
